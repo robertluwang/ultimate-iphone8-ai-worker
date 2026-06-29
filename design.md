@@ -86,7 +86,7 @@ python3 chat_py_cli.py
 
 ## Phase 5: Autonomous Edge Worker (Optional)
 
-You can run headless Python scripts that utilize the secure tunnel to perform automated tasks on your local network.
+You can run headless Python scripts that utilize the secure tunnel to perform automated tasks on your network.
 
 1. Create the worker script: `nano ~/edge_agent.py`
 2. Run the agent with a targeted prompt:
@@ -96,23 +96,25 @@ You can run headless Python scripts that utilize the secure tunnel to perform au
 
 ---
 
-## Phase 6: AI On-Device iOS Compilation (The App Factory)
+## Phase 6: AI On-Device iOS Compilation (SwiftUI App Factory)
 
-This step takes your setup to the next level. Using the **Theos build system**, your iPhone can ask Gemini to write Swift/Objective-C code, save it locally, and compile it into an actual iOS app installed on your home screen.
+Using the **Theos build system**, your iPhone can ask Gemini to write modern **SwiftUI** code, save it locally, and compile it into an actual iOS app installed on your home screen.
 
 ### Hardware & Compilation Context: Why does this work natively on the iPhone 8?
 Older devices (like an iPad running iOS 12 with 1GB RAM) often crash due to Out-Of-Memory (OOM) errors during the LLVM linking phase, forcing you to cross-compile from a MacBook. 
 
-The iPhone 8 solves this. It has 2GB of RAM, a highly capable A11 chip, and runs the modern Procursus bootstrap (iOS 15+). This provides a stable, native ARM64 port of the LLVM/Clang compiler with plenty of overhead to compile AI-generated UIKit apps entirely on-device, bypassing the need for a Mac.
+The iPhone 8 solves this. It has 2GB of RAM, a highly capable A11 chip, and runs the modern Procursus bootstrap (iOS 15+). This provides a stable, native ARM64 port of the Swift toolchain with plenty of overhead to compile AI-generated SwiftUI apps entirely on-device, bypassing the need for a Mac.
 
-### Step 1: Install Theos & SDK
-Follow the official Procursus/Theos setup guidelines on your jailbroken iPhone to install Theos into `/theos` and download the matching iOS SDK (e.g. iOS 14.x or 15.x SDK).
+### Step 1: Install Theos, SDK, and Swift
+Follow the official Procursus/Theos setup guidelines on your jailbroken iPhone to install Theos into `/theos`, set up the Swift compiler toolchain, and download a matching modern iOS SDK (e.g. iOS 15.x or 16.x SDK).
 
-### Step 2: The AI Developer Script
-Create a script that routes an app idea to Vertex, extracts the code, and compiles it.
+### Step 2: The Modern SwiftUI Developer Script
+Create a script that routes an app idea to Vertex, extracts the SwiftUI code, and compiles it.
 ```bash
-# Run the developer script
-python3 ai_ios_builder.py "CalcMaster" "A full featured scientific calculator with animations"
+# Run the SwiftUI builder script
+python3 ai_ios_builder.py "CalcMaster" "A full featured scientific calculator with beautiful modern SwiftUI gradients and haptic feedback"
 ```
 
-To use the builder: Run the script and describe the app you want to build. It will securely request the code via your tunnel, save the files, and compile the native application directly onto your iPhone!
+To use the builder: Run the script, enter an app name and description, and the builder will fetch modern iOS 16 SwiftUI code. Theos will compile the `App.swift` file natively and install it! 
+
+*(Note: If the app icon doesn't appear immediately, type `uicache` in the terminal to refresh the iOS home screen).*

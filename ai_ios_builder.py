@@ -23,17 +23,14 @@ except Exception as e:
     console.print(f"[bold red]Error initializing client:[/bold red] {e}")
     sys.exit(1)
 
-SYSTEM_PROMPT = """You are an iOS developer assistant specialized in building native UIKit applications for jailbroken iOS devices using the Theos build system.
-Your job is to generate all necessary source files and compilation instructions for a given application idea.
+SYSTEM_PROMPT = """You are an iOS developer assistant specialized in building modern SwiftUI applications for jailbroken iOS devices using the Theos build system.
+Your job is to generate all necessary Swift source files, configuration, and build instructions for a given application idea.
 
-You must output exactly five files in your response:
+You must output exactly four files in your response:
 1. control
 2. Makefile
-3. main.m
-4. AppDelegate.h
-5. AppDelegate.m
-6. RootViewController.h
-7. RootViewController.m
+3. AppNameApp.swift
+4. ContentView.swift
 
 For each file, use a markdown code block labeled with the filename in the header comment, like this:
 ```objc
@@ -43,7 +40,7 @@ Name: AppName
 Depends: mobilesubstrate
 Version: 0.0.1
 Architecture: iphoneos-arm64
-Description: AI Generated Application
+Description: AI Generated SwiftUI Application
 Maintainer: robertluwang <robert.lu.wang@gmail.com>
 Author: robertluwang <robert.lu.wang@gmail.com>
 Section: Utilities
@@ -51,74 +48,47 @@ Section: Utilities
 
 ```makefile
 // FILENAME: Makefile
-TARGET := iphone:clang:latest:14.0
+TARGET := iphone:clang:latest:15.0
 INSTALL_TARGET_PROCESSES = AppName
 
 include $(THEOS)/makefiles/common.mk
 
 APPLICATION_NAME = AppName
 
-AppName_FILES = main.m AppDelegate.m RootViewController.m
-AppName_FRAMEWORKS = UIKit CoreGraphics
+AppName_FILES = AppNameApp.swift ContentView.swift
+AppName_FRAMEWORKS = SwiftUI Combine
 
 include $(THEOS_MAKE_PATH)/application.mk
 ```
 
-```objc
-// FILENAME: main.m
-#import <UIKit/UIKit.h>
-#import "AppDelegate.h"
+```swift
+// FILENAME: AppNameApp.swift
+import SwiftUI
 
-int main(int argc, char *argv[]) {
-    @autoreleasepool {
-        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
+@main
+struct AppNameApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
     }
 }
 ```
 
-```objc
-// FILENAME: AppDelegate.h
-#import <UIKit/UIKit.h>
+And then write a modern, beautiful SwiftUI implementation for ContentView.swift inside:
+```swift
+// FILENAME: ContentView.swift
+import SwiftUI
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
-@property (strong, nonatomic) UIWindow *window;
-@end
-```
-
-```objc
-// FILENAME: AppDelegate.m
-#import "AppDelegate.h"
-#import "RootViewController.h"
-
-@implementation AppDelegate
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    RootViewController *rootVC = [[RootViewController alloc] init];
-    self.window.rootViewController = rootVC;
-    [self.window makeKeyAndVisible];
-    return YES;
+struct ContentView: View {
+    var body: some View {
+        // Implement gorgeous modern UI here...
+    }
 }
-
-@end
 ```
 
-```objc
-// FILENAME: RootViewController.h
-#import <UIKit/UIKit.h>
-
-@interface RootViewController : UIViewController
-@end
-```
-
-And then write a modern, beautiful UIKit/Objective-C implementation for RootViewController.m inside:
-```objc
-// FILENAME: RootViewController.m
-...
-```
-
-Make sure the app UI is extremely beautiful, modern, has a dark mode themed background, high-quality controls, buttons with callbacks, labels, text fields, and responds nicely. Include rich interactive features like calculations, games, state management, or custom animations in Objective-C.
-Ensure code is perfectly valid, clean, and doesn't use deprecated iOS 6 methods.
+Make sure the app UI is extremely beautiful, modern, has a dark mode themed background, high-quality SwiftUI controls, custom styling, animations, state management, and is fully functional.
+Ensure the code is perfectly valid, clean Swift, compatible with iOS 15/16 SwiftUI features, and error-free.
 """
 
 def extract_files(text: str) -> dict:
@@ -144,11 +114,11 @@ def build_app(app_name: str, app_description: str):
         f"[bold cyan]AppName:[/bold cyan] {app_name} ({safe_name})\n"
         f"[bold cyan]Idea:[/bold cyan] {app_description}\n"
         f"[bold cyan]Directory:[/bold cyan] {output_dir}",
-        title="[bold green]Preparing On-Device Compilation[/bold green]"
+        title="[bold green]Preparing On-Device Compilation (SwiftUI)[/bold green]"
     ))
 
     # Construct the user prompt
-    user_prompt = f"Please build a native iOS application named '{safe_name}' with the following functionality: {app_description}"
+    user_prompt = f"Please build a native iOS SwiftUI application named '{safe_name}' with the following functionality: {app_description}"
 
     with Status("Generating application code via Gemini...", spinner="dots") as status:
         try:

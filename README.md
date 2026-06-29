@@ -14,7 +14,7 @@ Welcome to the **iPhone 8 Secure Edge AI Worker** repository. This project conta
         │
         ├─► chat_py_cli.py (Interactive Chat Console)
         ├─► edge_agent.py  (Autonomous Edge System Agent)
-        └─► ai_ios_builder.py ──► [ Theos Build System ] ──► Native iOS App (.deb)
+        └─► ai_ios_builder.py ──► [ Theos Build System ] ──► Native iOS SwiftUI App (.deb)
 ```
 
 By establishing an encrypted SSH tunnel (`autossh`) to a remote Gateway VM running LiteLLM, we offload heavy AI computation to Google Cloud's Vertex AI Gemini, while keeping all local execution, terminal feedback, and compilation on the iPhone itself. 
@@ -32,7 +32,7 @@ This repository implements all the software components required for the edge wor
 | **`autossh_tunnel.sh`** | Bash Script | Automates starting and managing the background reverse SSH tunnel connecting your device to the Gateway VM. |
 | **`chat_py_cli.py`** | Python Utility | A beautiful, color-coded, streaming interactive terminal interface to chat with the Gemini brain in real-time. |
 | **`edge_agent.py`** | Python Utility | An autonomous agent capable of reasoning, running shell commands locally, reading/writing files, and solving tasks automatically. |
-| **`ai_ios_builder.py`** | Python Utility | The App Factory script. Ask the model for an app idea; it generates perfect Objective-C code and runs the local Theos compiler to build a native `.deb` app package. |
+| **`ai_ios_builder.py`** | Python Utility | The SwiftUI App Factory script. Ask the model for an app idea; it generates perfect SwiftUI code and runs the local Theos compiler to build a native `.deb` app package. |
 | **`requirements.txt`** | Dependency File| Lists the Python package dependencies (`openai`, `rich`, `requests`) required for the scripts. |
 | **`design.md`** | Markdown Document | The full step-by-step design specification, jailbreak guide, networking instructions, and bootstrap details. |
 
@@ -67,12 +67,12 @@ Instruct the local edge agent to perform a system or file task:
 python3 edge_agent.py "Analyze the disk space and write a summary to disk_report.txt"
 ```
 
-### 5. Compile Native Apps Natively (The App Factory)
-Ask the compiler script to design and build a native iOS application:
+### 5. Compile Native SwiftUI Apps Natively (The SwiftUI App Factory)
+Ask the compiler script to design and build a native iOS SwiftUI application:
 ```bash
 python3 ai_ios_builder.py "RetroTicTacToe" "A classic Tic-Tac-Toe game with neon styling, scoreboard, and smooth feedback"
 ```
-The script will prompt the AI model, create the file structure, and run `make` using your local Theos toolchain!
+The script will prompt the AI model, generate the SwiftUI views (`AppNameApp.swift` and `ContentView.swift`), set up the control layout and Makefile, and run `make` using your local Theos toolchain!
 
 ---
 
@@ -80,7 +80,7 @@ The script will prompt the AI model, create the file structure, and run `make` u
 
 - **Device:** iPhone 8 (or any Procursus-based iOS 15-16 jailbroken device)
 - **Jailbreak:** palera1n (rootful or rootless)
-- **Packages:** `python3`, `python3-pip`, `autossh`, `theos` (for Phase 6 compilation)
+- **Packages:** `python3`, `python3-pip`, `autossh`, `theos` (configured with the Swift toolchain for Phase 6 compilation)
 - **Environment Variables:**
   - `OPENAI_API_BASE`: Defaults to `http://localhost:4000/v1`
   - `OPENAI_API_KEY`: Defaults to `fake-key-for-gateway`
