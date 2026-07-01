@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Edge AI Chatbot</title>
+    
+    <!-- iOS Standalone Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Edge Worker">
+    
+    <!-- Tailwind CSS & FontAwesome Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Marked.js for beautiful Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* Custom scrollbar styling for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+        /* Custom iOS style padding for status bars in standalone mode */
+        body {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            background-color: #0b0c10;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-input-container {
+            padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+        }
+        /* Code block styling */
+        pre {
+            background-color: #1a1c23;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            border: 1px solid #2d3142;
+            margin: 0.5rem 0;
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 0.85rem;
+        }
+        code {
+            color: #ff7b72;
+            background-color: #1e1e24;
+            padding: 0.15rem 0.3rem;
+            border-radius: 0.25rem;
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 0.85rem;
+        }
+        pre code {
+            color: #e6edf3;
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col text-slate-100 overflow-hidden">
+
+    <!-- Top Navigation / Status Header -->
+    <header class="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 shrink-0 select-none z-10">
+        <div class="flex items-center space-x-2">
+            <!-- Sleek iOS Style App Icon -->
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-900/40">
+                <i class="fa-solid fa-brain text-white text-sm"></i>
+            </div>
+            <div>
+                <h1 class="text-sm font-semibold tracking-wide">iPhone 8 Edge Node</h1>
+                <p class="text-[10px] text-zinc-400 font-medium">Model: Gemini-Flash</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+            <!-- API Connection Indicator -->
+            <div class="flex items-center space-x-1.5 bg-zinc-900 px-2 py-1 rounded-full border border-zinc-800">
+                <span id="status-dot" class="w-2 h-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50 animate-pulse"></span>
+                <span id="status-text" class="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">Online</span>
+            </div>
+            
+            <!-- Actions -->
+            <button id="clear-btn" class="text-zinc-400 hover:text-red-400 active:scale-95 transition-all p-1" title="Clear Chat">
+                <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Chat Messages Window -->
+    <main id="chat-window" class="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-zinc-950">
+        <!-- Welcoming Message -->
+        <div class="welcome-box max-w-sm mx-auto my-6 text-center space-y-3 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800/60 shadow-xl">
+            <div class="w-12 h-12 mx-auto rounded-full bg-zinc-800 flex items-center justify-center text-blue-400 text-lg">
+                <i class="fa-solid fa-circle-nodes"></i>
+            </div>
+            <h2 class="text-sm font-bold text-zinc-200">Autonomous Edge Portal</h2>
+            <p class="text-xs text-zinc-400 leading-relaxed">
+                Welcome to your local iOS worker gateway. Prompts are routed directly through your encrypted SSH tunnel. 
+            </p>
+            <p class="text-[10px] text-zinc-500">
+                Tip: Add this page to your Home Screen for a completely borderless app experience!
+            </p>
+        </div>
+    </main>
+
+    <!-- Input Box Bar at Bottom -->
+    <footer class="bg-zinc-950 border-t border-zinc-900 ios-input-container px-4 py-3 shrink-0">
+        <form id="chat-form" class="flex items-center space-x-2 max-w-4xl mx-auto">
+            <textarea 
+                id="user-input" 
+                rows="1" 
+                placeholder="Message Gemini..." 
+                class="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-2.5 text-sm text-slate-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 resize-none max-h-24 min-h-[40px] leading-tight transition-all"
+                required
+            ></textarea>
+            
+            <button 
+                type="submit" 
+                id="send-btn" 
+                class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 active:scale-90 flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:pointer-events-none transition-all"
+            >
+                <i class="fa-solid fa-arrow-up text-sm"></i>
+            </button>
+        </form>
+    </footer>
+
+    <!-- Scripting for Interactions -->
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        let messages = [];
+
+        // Load chat history from LocalStorage
+        function loadHistory() {
+            const saved = localStorage.getItem('iphone_edge_chat');
+            if (saved) {
+                try {
+                    messages = JSON.parse(saved);
+                    // Remove initial welcome screen if history exists
+                    if (messages.length > 0) {
+                        const welcomeBox = document.querySelector('.welcome-box');
+                        if (welcomeBox) welcomeBox.remove();
+                    }
+                    messages.forEach(msg => appendMessage(msg.role, msg.content, false));
+                    scrollToBottom();
+                } catch (e) {
+                    console.error('Error parsing history:', e);
+                }
+            }
+        }
+
+        // Save chat history to LocalStorage
+        function saveHistory() {
+            localStorage.setItem('iphone_edge_chat', JSON.stringify(messages));
+        }
+
+        // Beautifully render Markdown
+        function renderMarkdown(text) {
+            try {
+                return marked.parse(text);
+            } catch (e) {
+                // Fallback to simple formatting if marked.js fails
+                return text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            }
+        }
+
+        // Append message bubbles
+        function appendMessage(role, content, animate = true) {
+            // Remove welcome screen on first manual input
+            const welcomeBox = document.querySelector('.welcome-box');
+            if (welcomeBox) welcomeBox.remove();
+
+            const isUser = role === 'user';
+            const container = document.createElement('div');
+            container.className = `flex ${isUser ? 'justify-end' : 'justify-start'} w-full animate-fade-in`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed shadow-sm ${
+                isUser 
+                ? 'bg-blue-600 text-white rounded-br-none' 
+                : 'bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-bl-none prose prose-invert'
+            }`;
+
+            if (isUser) {
+                bubble.textContent = content;
+            } else {
+                bubble.innerHTML = renderMarkdown(content);
+            }
+
+            container.appendChild(bubble);
+            chatWindow.appendChild(container);
+            
+            if (animate) {
+                container.style.opacity = 0;
+                container.style.transform = 'translateY(8px)';
+                container.style.transition = 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                setTimeout(() => {
+                    container.style.opacity = 1;
+                    container.style.transform = 'translateY(0)';
+                }, 50);
+            }
+        }
+
+        // Show typing indicator
+        let typingIndicator = null;
+        function showTypingIndicator() {
+            typingIndicator = document.createElement('div');
+            typingIndicator.className = 'flex justify-start w-full';
+            typingIndicator.innerHTML = `
+                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-bl-none px-4 py-3 flex items-center space-x-1.5 shadow-sm">
+                    <span class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                    <span class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                    <span class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                </div>
+            `;
+            chatWindow.appendChild(typingIndicator);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            if (typingIndicator) {
+                typingIndicator.remove();
+                typingIndicator = null;
+            }
+        }
+
+        function scrollToBottom() {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // Auto-expand textarea on input (iOS style)
+        userInput.addEventListener('input', () => {
+            userInput.style.height = 'auto';
+            userInput.style.height = userInput.scrollHeight + 'px';
+        });
+
+        // Submit form
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            
+            // Add user message
+            appendMessage('user', text);
+            messages.push({ role: 'user', content: text });
+            saveHistory();
+            scrollToBottom();
+
+            // Setup UI states
+            sendBtn.disabled = true;
+            showTypingIndicator();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages })
+                });
+
+                removeTypingIndicator();
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || 'Server error');
+                }
+
+                const data = await response.json();
+                const aiReply = data.choices[0].message.content;
+
+                appendMessage('assistant', aiReply);
+                messages.push({ role: 'assistant', content: aiReply });
+                saveHistory();
+                scrollToBottom();
+
+                // Maintain online status state
+                statusDot.className = "w-2 h-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50";
+                statusText.textContent = "Online";
+
+            } catch (err) {
+                removeTypingIndicator();
+                appendMessage('assistant', `⚠️ **Connection Error**: ${err.message}\n\nPlease check if your Gateway SSH tunnel is active on port 4000.`);
+                scrollToBottom();
+                
+                // Set offline state
+                statusDot.className = "w-2 h-2 rounded-full bg-red-500 shadow-md shadow-red-500/50";
+                statusText.textContent = "Offline";
+            } finally {
+                sendBtn.disabled = false;
+            }
+        });
+
+        // Clear Chat Action
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Clear entire conversation history?')) {
+                messages = [];
+                localStorage.removeItem('iphone_edge_chat');
+                chatWindow.innerHTML = `
+                    <div class="welcome-box max-w-sm mx-auto my-6 text-center space-y-3 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800/60 shadow-xl">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-zinc-800 flex items-center justify-center text-blue-400 text-lg">
+                            <i class="fa-solid fa-circle-nodes"></i>
+                        </div>
+                        <h2 class="text-sm font-bold text-zinc-200">Autonomous Edge Portal</h2>
+                        <p class="text-xs text-zinc-400 leading-relaxed">
+                            Welcome to your local iOS worker gateway. Prompts are routed directly through your encrypted SSH tunnel. 
+                        </p>
+                    </div>
+                `;
+            }
+        });
+
+        // Submit via enter key (but allow newline with Shift+Enter)
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && window.innerWidth > 768) {
+                e.preventDefault();
+                chatForm.requestSubmit();
+            }
+        });
+
+        // Bootstrap
+        loadHistory();
+    </script>
+</body>
+</html>

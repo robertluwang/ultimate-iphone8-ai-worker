@@ -3,7 +3,8 @@ import os
 import sys
 import json
 import subprocess
-from openai import OpenAI
+import urllib.request
+import urllib.error
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -11,16 +12,38 @@ from rich.text import Text
 console = Console()
 
 # Configuration
-API_BASE = os.getenv("OPENAI_API_BASE", "http://localhost:4000/v1")
-API_KEY = os.getenv("OPENAI_API_KEY", "fake-key-for-gateway")
-MODEL_NAME = os.getenv("OPENAI_MODEL", "gemini-1.5-flash")
+LITELLM_URL = os.environ.get("LITELLM_URL", "http://localhost:4000/v1/chat/completions")
+LITELLM_MASTER_KEY = os.environ.get("LITELLM_MASTER_KEY", "")
+LITELLM_MODEL = os.environ.get("LITELLM_MODEL", "gemini-flash")
 
-# Initialize OpenAI Client
-try:
-    client = OpenAI(base_url=API_BASE, api_key=API_KEY)
-except Exception as e:
-    console.print(f"[bold red]Error initializing client:[/bold red] {e}")
-    sys.exit(1)
+def do_chat(messages):
+    payload = {
+        "model": LITELLM_MODEL,
+        "messages": messages,
+        "temperature": 0.2
+    }
+    json_data = json.dumps(payload).encode("utf-8")
+
+    req = urllib.request.Request(LITELLM_URL, method="POST", data=json_data)
+    req.add_header("Content-Type", "application/json")
+    if LITELLM_MASTER_KEY:
+        req.add_header("Authorization", f"Bearer {LITELLM_MASTER_KEY}")
+
+    try:
+        with urllib.request.urlopen(req) as response:
+            response_body = response.read().decode("utf-8")
+            resp_json = json.loads(response_body)
+
+            if "choices" in resp_json and len(resp_json["choices"]) > 0:
+                return resp_json["choices"][0]["message"]["content"], None
+            else:
+                return None, Exception("No response from LLM.")
+
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode('utf-8', errors='ignore')
+        return None, Exception(f"API Error (status {e.code}): {err_body}")
+    except Exception as e:
+        return None, Exception(f"Unexpected Error: {e}")
 
 def run_command(command: str) -> str:
     """Executes a shell command locally on the device safely."""
@@ -111,13 +134,9 @@ def run_agent(task: str):
         
         try:
             # Query the model
-            response = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                temperature=0.2
-            )
-            
-            ai_response = response.choices[0].message.content
+            ai_response, err = do_chat(messages)
+            if err:
+                raise err
             console.print(f"[bold green]Agent Thoughts/Output:[/bold green]\n{ai_response}")
             messages.append({"role": "assistant", "content": ai_response})
 

@@ -1,0 +1,13 @@
+{
+  "name": "node-chatbot-ui",
+  "version": "1.0.0",
+  "description": "Local Chatbot UI for jailbroken iPhone 8 AI Edge Worker",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "private": true
+}
